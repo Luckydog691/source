@@ -6,7 +6,7 @@ void block::set_block(int r, int c)
 	row = r, col = c;
 	charter t;
 	for (int i = 1; i <= r * c; i++)add_char(t);
-	info_mat = Mat(r, bit_SIZE * c, CV_64FC1, Scalar(255));
+	info_mat = Mat(r, bit_SIZE * c, CV_64FC1, Scalar(0));
 	//decode();
 }
 

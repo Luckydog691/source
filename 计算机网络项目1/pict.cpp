@@ -9,15 +9,15 @@ void pict::encode()
 	block anc1;
 	anc1.anchor();
 	
-	info.block_copy(0 + ex_size * bit_SIZE, 0 + ex_size, anc1);
+	info.block_copy(0, 0, anc1);
 	anc1 = blockRotateClockWise270(anc1);
-	info.block_copy(ROW - anchor_size * bit_SIZE + ex_size * bit_SIZE, 0 + ex_size, anc1);
+	info.block_copy(ROW - anchor_size * bit_SIZE, 0, anc1);
 	anc1 = blockRotateClockWise180(anc1);
-	info.block_copy(0 + ex_size * bit_SIZE, COL - anchor_size + ex_size, anc1);
+	info.block_copy(0 , COL - anchor_size, anc1);
 	
-	info.block_copy(0 + ex_size * bit_SIZE, anchor_size + ex_size, block_info[0]);
-	info.block_copy(anchor_size * bit_SIZE + ex_size * bit_SIZE, 0 + ex_size, block_info[1]);
-	info.block_copy(ROW - anchor_size * bit_SIZE + ex_size * bit_SIZE, anchor_size + ex_size, block_info[2]);
+	info.block_copy(0, anchor_size, block_info[0]);
+	info.block_copy(anchor_size * bit_SIZE, 0, block_info[1]);
+	info.block_copy(ROW - anchor_size * bit_SIZE, anchor_size, block_info[2]);
 	
 	info.encode();
 }
@@ -27,13 +27,14 @@ void pict::decode()
 {
 	Mat roi, src = info.get_mat();
 	roi = Mat(anchor_size * bit_SIZE, (COL - 2 * anchor_size) * bit_SIZE, CV_64FC1);
-	src.copyTo(roi(Rect(ex_size * bit_SIZE, (anchor_size + ex_size) * bit_SIZE, anchor_size * bit_SIZE, (COL - 2 * anchor_size) * bit_SIZE)));
+	src(Rect(0, anchor_size * bit_SIZE, anchor_size * bit_SIZE, (COL - 2 * anchor_size) * bit_SIZE)).copyTo(roi);
 	block_info[0].set_mat(roi);
-	src.copyTo(roi(Rect((ROW - anchor_size * bit_SIZE + ex_size) * bit_SIZE, (anchor_size + ex_size) * bit_SIZE, anchor_size * bit_SIZE, (COL - 2 * anchor_size) * bit_SIZE)));
+	
+	src(Rect(ROW - anchor_size * bit_SIZE, anchor_size * bit_SIZE, anchor_size * bit_SIZE, (COL - 2 * anchor_size) * bit_SIZE)).copyTo(roi);
 	block_info[2].set_mat(roi);
 
-	roi = Mat((ROW - 2 * anchor_size * bit_SIZE) * bit_SIZE, COL * bit_SIZE, CV_64FC1);
-	src.copyTo(roi(Rect((ex_size + anchor_size * bit_SIZE) * bit_SIZE, 0, (ROW - 2 * anchor_size * bit_SIZE + ex_size) * bit_SIZE, COL * bit_SIZE)));
+	roi = Mat((ROW - 2 * anchor_size * bit_SIZE), COL * bit_SIZE, CV_64FC1);
+	src(Rect(anchor_size * bit_SIZE, 0, (ROW - 2 * anchor_size * bit_SIZE), COL * bit_SIZE)).copyTo(roi);
 	block_info[1].set_mat(roi);
 }
 

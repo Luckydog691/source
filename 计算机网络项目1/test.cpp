@@ -1,5 +1,9 @@
 #include <opencv2/opencv.hpp>
+#include <bits/stdc++.h>
 #include "reff.h"
+
+using namespace std;
+using namespace cv;
 //mainº¯Êý
 
 /*
@@ -19,16 +23,15 @@ void test_691()
 	//freopen("testdata.in", "r", stdin);
 	srand(time(0));
 	for (int i = 1; i <= 3000; i++)
-	{
-		int u = (char)(rand() % 256 - 127);
-		a.push_back(u);
-	}
+		a.push_back(rand() % 128 + 1);
+
 	vector<charter>b = build_charter(a);
 	vector<pict>c = charter_to_pict(b);
-	string mov1 = "test1.avi", mov2 = "test2.avi";
+		
+	string mov1 = "D:\\test1.avi", mov2 = "D:\\test2.avi";
 	Mat_to_mov(mov1, c, 12);
-	vector<pict>d = Mov_to_mat(mov1, 2);
-	Mat_to_mov(mov2, d, 12);
+	//vector<pict>d = Mov_to_mat(mov1, 2);
+	//Mat_to_mov(mov2, d, 12);
 }
 int main()
 {

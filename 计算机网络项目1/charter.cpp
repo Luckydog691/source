@@ -40,6 +40,7 @@ char charter::get_message() { return message; }
 vector<charter> build_charter(string fp)
 {
 	vector<charter>ret; charter elem;
+	ret.clear();
 	for (int i = 0; i < (int)fp.size(); i++)
 	{
 		elem.set_message(fp[i]);
