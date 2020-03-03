@@ -9,7 +9,7 @@ encode：有由bit信息（info）编码成图像信息（info_mat）
 decode：解码成图像信息（info_mat）解码成bit信息（info）
 build：由字符串信息（charter）转化成图像块（block）
 */
-class block : public charter
+class block 
 {
 protected:
 	int row, col;

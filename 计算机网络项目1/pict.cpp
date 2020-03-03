@@ -19,10 +19,7 @@ void pict::encode()
 	info.block_copy(anchor_size * bit_SIZE + ex_size * bit_SIZE, 0 + ex_size, block_info[1]);
 	info.block_copy(ROW - anchor_size * bit_SIZE + ex_size * bit_SIZE, anchor_size + ex_size, block_info[2]);
 	
-
 	info.encode();
-	
-	info.show();
 }
 
 //生成分块block
@@ -64,7 +61,7 @@ vector<pict>charter_to_pict(vector<charter> ct)
 		elem.set_block_info(2, build_block(ct, anchor_size * bit_SIZE, COL - 2 * anchor_size, index));
 		elem.encode();//这里是原来的form
 		ret.push_back(elem);
-	}
+	}  
 	return ret;
 }
 
@@ -85,7 +82,14 @@ vector<charter> pict_to_charter(vector<pict> pt)
 	}
 	return ret;
 }
-
+void pict::set_info_mat(Mat elem)
+{
+	info.set_mat(elem);
+}
+Mat pict::get_info_mat()
+{
+	return info.get_mat();
+}
 //行扩大x倍宽扩大y倍输出
 void pict::show(int x, int y)
 {

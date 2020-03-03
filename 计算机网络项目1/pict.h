@@ -6,7 +6,7 @@
 from：生成pic（由上述信息）
 read：解读pic，得到3个信息块
 */
-class pict : public block
+class pict 
 {
 private:
 	block block_info[3];
@@ -39,6 +39,8 @@ public:
 	void decode();
 	void set_block_info(int index, block src);
 	block get_block_info(int index);
+	Mat get_info_mat();
+	void set_info_mat(Mat elem);
 	void show(int x, int y);
 };
 

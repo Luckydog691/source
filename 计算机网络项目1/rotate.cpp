@@ -1,4 +1,4 @@
-#include <opencv.hpp>
+#include "rotate.h"
 using namespace cv;
 
 Mat matRotateClockWise90(Mat src)//À≥ ±’Î90

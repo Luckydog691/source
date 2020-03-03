@@ -1,4 +1,3 @@
-#include <bits/stdc++.h>
 #include <opencv2/opencv.hpp>
 #include "reff.h"
 //mainº¯Êý
@@ -14,21 +13,25 @@ int main()
 	return 0;
 }*/
 
-
-int main()
+void test_691()
 {
 	string a;
 	//freopen("testdata.in", "r", stdin);
 	srand(time(0));
-	for (int i = 1; i <= 1000; i++)
+	for (int i = 1; i <= 3000; i++)
 	{
 		int u = (char)(rand() % 256 - 127);
 		a.push_back(u);
 	}
 	vector<charter>b = build_charter(a);
 	vector<pict>c = charter_to_pict(b);
-	c[0].encode();
-	c[0].show(5, 5);
+	string mov1 = "test1.avi", mov2 = "test2.avi";
+	Mat_to_mov(mov1, c, 12);
+	vector<pict>d = Mov_to_mat(mov1, 2);
+	Mat_to_mov(mov2, d, 12);
+}
+int main()
+{
 	/*
 	vector<pict>dp;
 	vector<charter>dc;
@@ -49,5 +52,6 @@ int main()
 	}
 	cout << "sum:" << sum << endl << "error:" << cnt << endl << "error rate:" << cnt / sum << endl;
 	*/
+	test_691();
 	return 0;
 }

@@ -3,3 +3,4 @@
 #include "charter.h"
 #include "block.h"
 #include "pict.h"
+#include "movie.h"
