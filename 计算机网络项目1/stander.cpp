@@ -1,5 +1,5 @@
 #include "stander.h"
-//生成定位点的辅助函数
+
 bool check(int x, int y, pair<int, int> size)
 {
 	int min_r = size.first / bit_SIZE;
