@@ -6,7 +6,7 @@ void block::set_block(int r, int c)
 	row = r, col = c;
 	charter t;
 	for (int i = 1; i <= r * c; i++)add_char(t);
-	info_mat = Mat(r, bit_SIZE * c, CV_64FC1, Scalar(0));
+	info_mat = Mat(r, bit_SIZE * c, CV_64FC1, Scalar(255));
 	//decode();
 }
 
@@ -23,9 +23,10 @@ void block::block_copy(int r, int c, block src)
 void block::encode()
 {
 	int index = 0, count = 0;
-	for (int i = 0; i < row; i++)
+	int r = info_mat.rows, c = info_mat.cols;
+	for (int i = 0; i < r; i++)
 	{
-		for (int j = 0; j < col * bit_SIZE; j++)
+		for (int j = 0; j < c; j++)
 		{
 			if (char_info[index].get_bit(count))
 				info_mat.at<double>(i, j) = 255;

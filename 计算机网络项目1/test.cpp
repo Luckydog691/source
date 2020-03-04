@@ -22,14 +22,16 @@ void test_691()
 	string a;
 	//freopen("testdata.in", "r", stdin);
 	srand(time(0));
-	for (int i = 1; i <= 3000; i++)
-		a.push_back(rand() % 128 + 1);
-
+	for (int i = 1; i <= 30000; i++)
+		a.push_back(rand() % 256 + 1);
+		//a.push_back(128);
 	vector<charter>b = build_charter(a);
 	vector<pict>c = charter_to_pict(b);
 		
-	string mov1 = "D:\\test1.avi", mov2 = "D:\\test2.avi";
+	string mov1 = "D:\\test1.mp4", mov2 = "D:\\test2.AVI";
 	Mat_to_mov(mov1, c, 12);
+
+
 	//vector<pict>d = Mov_to_mat(mov1, 2);
 	//Mat_to_mov(mov2, d, 12);
 }
