@@ -4,3 +4,4 @@
 #include "block.h"
 #include "pict.h"
 #include "movie.h"
+#include "file.h"

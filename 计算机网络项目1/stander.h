@@ -1,4 +1,6 @@
 #include <opencv2/opencv.hpp>
+#include <opencv2\imgproc\types_c.h>
+#include <cmath>
 #include <opencv.hpp>
 #include <string>
 #include <vector>
