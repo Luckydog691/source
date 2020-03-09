@@ -10,3 +10,16 @@ bool check(int x, int y, pair<int, int> size)
 	if (x >= 2 * min_r && x < 5 * min_r && y >= 2 * min_c && y < 5 * min_c) return 1;
 	return 0;
 }
+
+string int_to_str(int k)
+{
+	if (k == 0)	return "0";
+	string ret;
+	while (k)
+	{
+		char t = (char)(k % 10 + '0');
+		ret = t + ret;
+		k /= 10;
+	}
+	return ret;
+}

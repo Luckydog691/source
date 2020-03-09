@@ -14,6 +14,8 @@ void pict::encode()
 	info.block_copy(ROW - anchor_size * bit_SIZE, 0, anc1);
 	anc1 = blockRotateClockWise180(anc1);
 	info.block_copy(0 , COL - anchor_size, anc1);
+	anc1 = blockRotateClockWise90(anc1);
+	info.block_copy(ROW - anchor_size * bit_SIZE, COL - anchor_size, anc1);
 	
 	info.block_copy(0, anchor_size, block_info[0]);
 	info.block_copy(anchor_size * bit_SIZE, 0, block_info[1]);

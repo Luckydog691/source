@@ -11,3 +11,5 @@ using namespace std;
 const int bit_SIZE = 8, THRESHOLD = 120, anchor_size = 2 , ROW = 80, COL = 10;
 
 bool check(int x, int y, pair<int, int> size);
+
+string int_to_str(int k);
