@@ -22,7 +22,7 @@ public:
 	void encode();
 	void decode();
 	Mat get_mat();
-	void set_mat(Mat roi);
+	void set_mat(Mat &roi);
 	void set_info(int i, int j, bool val);
 	bool get_info(int i, int j);
 	void add_char(charter c);

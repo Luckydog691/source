@@ -3,29 +3,29 @@
 Mat Extend_mat(Mat input, int x, int y)//将Mat横坐标扩大x倍，纵坐标扩大y倍
 {
 	int r = input.rows, c = input.cols;
-	Mat dst(r * x, c * y, CV_64FC1);
+	Mat dst(r * x, c * y, CV_8UC1);
 	for (int i = 0; i < r * x; i += x)
 		for (int j = 0; j < c * y; j += y)
 			for (int ii = 0; ii < x; ii++)
 				for (int jj = 0; jj < y; jj++)
 				{
-					dst.at<double>(i + ii, j + jj) = input.at<double>(i / x, j / y);
+					dst.at<uchar>(i + ii, j + jj) = input.at<uchar>(i / x, j / y);
 				}
 	return dst;
 }
 Mat Lessen_mat(Mat input, int x, int y)//将Mat横坐标缩小x倍，纵坐标缩小y倍
 {
 	int r = input.rows, c = input.cols;
-	Mat dst(r / x, c / y, CV_64FC1);
+	Mat dst(r / x, c / y, CV_8UC1);
 	for (int i = 0; i < r / x; i++)
 		for (int j = 0; j < c / y; j++)
 		{
 			int sum = 0;
 			for (int ii = 0; ii < x; ii++)
 				for (int jj = 0; jj < y; jj++)
-					sum += input.at<double>(i * x + ii, j * y +jj);
-			if(sum/(x*y)>=THRESHOLD)dst.at<double>(i, j)=255;
-			else dst.at<double>(i, j) = 0;
+					sum += input.at<uchar>(i * x + ii, j * y +jj);
+			if(sum/(x*y)>=THRESHOLD)dst.at<uchar>(i, j)=255;
+			else dst.at<uchar>(i, j) = 0;
 		}
 	return dst;
 }
@@ -163,12 +163,14 @@ bool get_qrcode(Mat input,Mat& output)
     //彩色图转灰度图
     cvtColor(input, input, CV_BGR2GRAY);
     //二值化
+
+
     threshold(input, input, 0, 255, THRESH_BINARY | THRESH_TRIANGLE);
     
     Mat ini = input;
     GaussianBlur(ini, input, Size(Point(5, 5)), 0);
     //高斯模糊
-
+    imwrite("image/test4.jpg", input);
 
     //调用查找轮廓函数
     vector<vector<Point> > contours;
@@ -176,7 +178,7 @@ bool get_qrcode(Mat input,Mat& output)
     
     findContours(input, contours, hierarchy, CV_RETR_TREE, CHAIN_APPROX_NONE, Point(0, 0));
 
-    //通过黑色定位角作为父轮廓，有两个子轮廓的特点，筛选出三个定位角
+    //通过黑色定位角作为父轮廓，有两个子轮廓的特点，筛选出四个定位角
     int parentIdx = -1;
     int ic = 0;
     vector<vector<Point>>pos;//记录二维码顶点的坐标
@@ -207,11 +209,11 @@ bool get_qrcode(Mat input,Mat& output)
             else ic = 0;
         }
     }    
-    if ( pos.size() < 3)return 0;
+    if ( pos.size() < 4)return 0;
     
     vector<Point2f>qrcenter;//保存二维码中心的坐标
     vector<Point2f>newcenter;//仿射变换坐标
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 4; i++)
     {
         int sumx = 0, sumy = 0;
         for (int j = 0; j < (int)pos[i].size(); j++)
@@ -225,11 +227,7 @@ bool get_qrcode(Mat input,Mat& output)
     }
     newcenter = qrcenter;
     AdjustQrPoint(qrcenter);
-    Point sub;
-    sub.x = qrcenter[1].x - qrcenter[0].x + qrcenter[2].x;
-    sub.y = qrcenter[2].y - qrcenter[0].y + qrcenter[1].y;
-    qrcenter.push_back(sub);
-    newcenter.push_back(sub);
+
     int newx = qrcenter[1].x - qrcenter[0].x;
     newcenter[0] = qrcenter[0];
     newcenter[1].x = newcenter[0].x + newx, newcenter[1].y = newcenter[0].y;
@@ -239,24 +237,26 @@ bool get_qrcode(Mat input,Mat& output)
     auto M = getPerspectiveTransform(qrcenter, newcenter);
     Mat drawingRotation;
     warpPerspective(ini, drawingRotation, M, ini.size());
-   
-    imwrite("image/output.jpg", drawingRotation);
     double dist = newx;
     double k = (double)anchor_size / (double)COL;
-    double new_COL = dist/(1-k);
+    double new_COL = dist/(1-((double)7/8)*k);
     double new_anchor_size = new_COL * k;
-    int x1 = qrcenter[0].x - new_anchor_size / 2, y1 = qrcenter[0].y - new_anchor_size / 2, x2 = qrcenter[0].x - new_anchor_size / 2 + new_COL, y2 = qrcenter[0].y - new_anchor_size / 2 + new_COL;
+    double edge_dis = new_anchor_size * ((double)7 / 16);
+    int x1 = qrcenter[0].x - edge_dis, y1 = qrcenter[0].y - edge_dis, x2 = qrcenter[0].x - edge_dis + new_COL, y2 = qrcenter[0].y - edge_dis + new_COL;
     Mat newoutput = drawingRotation( Range(y1, y2), Range(x1, x2) );
+    newoutput.copyTo(output);
+    //imwrite("image/output2.jpg", newoutput);
     
-    imwrite("image/output2.jpg", newoutput);
-  
     return 1;
 }
-
-void AdjustQrPoint(vector<Point2f> &point)//调整三个顶点相对位置，目前只保证是正向拍摄
+bool Point2f_compare(Point2f a, Point2f b)
 {
+    return (a.x + a.y) < (b.x + b.y);
+}
+void AdjustQrPoint(vector<Point2f> &point)//调整四个顶点相对位置，目前只保证是正向拍摄
+{
+    sort(point.begin(), point.begin() + 4, Point2f_compare);
     if (point[0].x > point[1].x&& point[0].x > point[2].x)swap(point[0], point[1]);
     else if (point[2].x > point[1].x&& point[2].x > point[0].x)swap(point[2], point[1]);
-    
     if (point[0].y > point[1].y&& point[0].y > point[2].y)swap(point[0], point[2]);
 }

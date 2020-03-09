@@ -1,11 +1,10 @@
 #include"movie.h"
-#include"reff.h"
-#include"file.h"
+
 
 //视频转pic，参数为读入视频的存储路径(string)，帧距
 vector<pict> Mov_to_mat(string filename, string picname, int frameDis)
 {
-	VideoCapture capture(filename);	
+	VideoCapture capture(filename);
 	bool finished = 0;
 	vector<pict> frames;
 
@@ -38,7 +37,7 @@ vector<pict> Mov_to_mat(string filename, string picname, int frameDis)
 }
 
 //pic转视频，参数为读入视频的存储路径(string)，Mat组，一张图片持续的帧数
-void Mat_to_mov(string filename, string imagename, vector<pict>frames, int framedis, int T)
+void Mat_to_movie(string filename, string imagename, vector<pict>frames, int framedis, int T)
 {
 	// 构造一个VideoWriter
 	int width = T * COL * bit_SIZE, height = T * ROW;
@@ -50,18 +49,13 @@ void Mat_to_mov(string filename, string imagename, vector<pict>frames, int frame
 	{
 		cout << "failed!!!!!\n";
 		return;
-	} 
+	}
 
 	for (int i = 0; i < frames.size(); i++)
 	{
 		frames[i].encode();
 		string position = imagename + int_to_str(i) + ".jpg";
 		Save_pic(frames[i], position, T, T);
-		/*namedWindow("input", WINDOW_AUTOSIZE);
-		imshow("123", to_image);
-		if(i == 0)
-			waitKey();*/
-		// 流操作符，把图片传入视频
 		Mat to_image = imread(position);
 		for (int j = 0; j < framedis; j++)
 			video.write(to_image);

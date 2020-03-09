@@ -2,7 +2,7 @@
 #include "rotate.h"
 #include "block.h"
 
-//生成block（目前只写了三个定位点）
+//生成block（四个定位点）
 
 void pict::encode()
 {
@@ -16,7 +16,7 @@ void pict::encode()
 	info.block_copy(0 , COL - anchor_size, anc1);
 	anc1 = blockRotateClockWise90(anc1);
 	info.block_copy(ROW - anchor_size * bit_SIZE, COL - anchor_size, anc1);
-	
+
 	info.block_copy(0, anchor_size, block_info[0]);
 	info.block_copy(anchor_size * bit_SIZE, 0, block_info[1]);
 	info.block_copy(ROW - anchor_size * bit_SIZE, anchor_size, block_info[2]);
@@ -28,16 +28,23 @@ void pict::encode()
 void pict::decode()
 {
 	Mat roi, src = info.get_mat();
-	roi = Mat(anchor_size * bit_SIZE, (COL - 2 * anchor_size) * bit_SIZE, CV_64FC1);
-	src(Rect(0, anchor_size * bit_SIZE, anchor_size * bit_SIZE, (COL - 2 * anchor_size) * bit_SIZE)).copyTo(roi);
-	block_info[0].set_mat(roi);
 	
-	src(Rect(ROW - anchor_size * bit_SIZE, anchor_size * bit_SIZE, anchor_size * bit_SIZE, (COL - 2 * anchor_size) * bit_SIZE)).copyTo(roi);
+	roi = Mat(anchor_size * bit_SIZE, (COL - 2 * anchor_size) * bit_SIZE, CV_8UC1);
+
+	src(Rect(anchor_size * bit_SIZE, 0, (COL - 2 * anchor_size) * bit_SIZE, anchor_size * bit_SIZE)).copyTo(roi);
+	block_info[0].set_mat(roi);
+
+	src(Rect(anchor_size * bit_SIZE,ROW - anchor_size * bit_SIZE , (COL - 2 * anchor_size) * bit_SIZE, anchor_size * bit_SIZE)).copyTo(roi);
 	block_info[2].set_mat(roi);
 
-	roi = Mat((ROW - 2 * anchor_size * bit_SIZE), COL * bit_SIZE, CV_64FC1);
-	src(Rect(anchor_size * bit_SIZE, 0, (ROW - 2 * anchor_size * bit_SIZE), COL * bit_SIZE)).copyTo(roi);
+	roi = Mat((ROW - 2 * anchor_size * bit_SIZE), COL * bit_SIZE, CV_8UC1);
+	src(Rect( 0, anchor_size * bit_SIZE, COL * bit_SIZE,(ROW - 2 * anchor_size * bit_SIZE))).copyTo(roi);
 	block_info[1].set_mat(roi);
+
+	
+	block_info[0].decode();
+	block_info[1].decode();
+	block_info[2].decode();
 }
 
 //设置第index块block_info的信息
@@ -97,16 +104,13 @@ Mat pict::get_info_mat()
 void pict::show(int x, int y)
 {
 	int r = info.get_mat().rows, c = info.get_mat().cols;
-	Mat sub(r * x, c * y, CV_64FC1);
+	Mat sub(r * x, c * y, CV_8UC1);
 	for (int i = 0; i < r * x; i += x)
 		for (int j = 0; j < c * y; j += y)
 			for (int ii = 0; ii < x; ii++)
 				for (int jj = 0; jj < y; jj++)
-				{
-					if (i + ii >= sub.rows || j + jj >= sub.cols || i / x >= info.get_mat().rows || j / y >= info.get_mat().cols)
-						getchar();
-					sub.at<double>(i + ii, j + jj) = info.get_mat().at<double>(i / x, j / y);
-
+				{	
+					sub.at<uchar>(i + ii, j + jj) = info.get_mat().at<uchar>(i / x, j / y);
 				}
 	imshow("test23", sub);
 	waitKey();

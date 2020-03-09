@@ -6,7 +6,7 @@ void block::set_block(int r, int c)
 	row = r, col = c;
 	charter t;
 	for (int i = 1; i <= r * c; i++)add_char(t);
-	info_mat = Mat(r, bit_SIZE * c, CV_64FC1, Scalar(255));
+	info_mat = Mat(r, bit_SIZE * c, CV_8UC1, Scalar(255));
 	//decode();
 }
 
@@ -29,9 +29,9 @@ void block::encode()
 		for (int j = 0; j < c; j++)
 		{
 			if (char_info[index].get_bit(count))
-				info_mat.at<double>(i, j) = 255;
+				info_mat.at<uchar>(i, j) = 255;
 			else
-				info_mat.at<double>(i, j) = 0;
+				info_mat.at<uchar>(i, j) = 0;
 			++count;
 			if (count >= 8) { count = 0; ++index; }
 		}
@@ -42,11 +42,12 @@ void block::encode()
 void block::decode()
 {
 	int index = 0, count = 0;
+	
 	for (int i = 0; i < row; i++)
 	{
 		for (int j = 0; j < col * bit_SIZE; j++)
 		{
-			double gray = info_mat.at<double>(i, j);
+			double gray = info_mat.at<uchar>(i, j);
 			char_info[index].set_bit(count, gray < THRESHOLD);
 			++count;
 			if (count >= 8) { count = 0; ++index; }
@@ -57,7 +58,9 @@ void block::decode()
 
 Mat block::get_mat() { return info_mat; }
 
-void block::set_mat(Mat roi) { info_mat = roi; }
+void block::set_mat(Mat &roi) { 
+	roi.copyTo(info_mat);
+}
 
 //(i为1-index)获得block中i行j列的元素
 bool block::get_info(int i, int j)
@@ -146,9 +149,9 @@ void block::anchor()
 			{
 				int index = j * bit_SIZE + k;
 				if (!check(i, index, get_size()))
-					info_mat.at<double>(i, index) = 0;
+					info_mat.at<uchar>(i, index) = 0;
 				else
-					info_mat.at<double>(i, index) = 255;
+					info_mat.at<uchar>(i, index) = 255;
 			}
 		}
 	}

@@ -22,18 +22,20 @@ public:
 		for(int i = 0; i < bit_SIZE * 0; i++)
 			for (int j = 0; j < c * bit_SIZE; j++)
 			{
-				info_mat.at<double>(i, j) = 0;
-				info_mat.at<double>(r - i - 1, j) = 0;
-			}
-				
+				info_mat.at<uchar>(i, j) = 0;
+				info_mat.at<uchar>(r - i - 1, j) = 0;
+			}	
 		for (int i = 0; i < r; i++)
 			for (int j = 0; j < 0 * bit_SIZE; j++)
 			{
-				info_mat.at<double>(i, j) = 0;
-				info_mat.at<double>(i, c * bit_SIZE - j - 1) = 0;
+				info_mat.at<uchar>(i, j) = 0;
+				info_mat.at<uchar>(i, c * bit_SIZE - j - 1) = 0;
 			}
 		info.set_mat(info_mat);
 		info.decode();
+		block_info[0].set_block(anchor_size * bit_SIZE,COL - 2 * anchor_size);
+		block_info[1].set_block(ROW - 2 * anchor_size * bit_SIZE, COL);
+		block_info[2].set_block(anchor_size * bit_SIZE, COL - 2 * anchor_size);
 	}
 	void encode();
 	void decode();
