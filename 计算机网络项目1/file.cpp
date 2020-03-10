@@ -34,10 +34,13 @@ void Save_pic(pict src, string dst)//将pict类型的图片保存在本地
 	src.encode();
 	imwrite(dst, src.get_info_mat());
 }
-void Save_pic(pict src, string dst,int x,int y)//将pict类型的图片保存在本地
+void Save_pic(pict src, string dst,int x,int y)//将pict类型的图片保存在本地,放大倍数的同时会自动向外扩展边框
 {
 	src.encode();
-	imwrite(dst, Extend_mat(src.get_info_mat(),x,y));
+    Mat sub; Extend_mat(src.get_info_mat(), x, y).copyTo(sub);
+
+    copyMakeBorder(sub, sub, anchor_size * y *bit_SIZE, anchor_size * y * bit_SIZE, anchor_size * x * bit_SIZE, anchor_size * x * bit_SIZE, BORDER_CONSTANT, 255);
+	imwrite(dst, sub);
 }
 bool IsQrColorRate(cv::Mat& image)
 {
@@ -145,15 +148,18 @@ bool Judge(vector<Point>& contour, Mat& img)
 {
     //最小大小限定
     RotatedRect rotatedRect = minAreaRect(contour);//旋转矩形
-    //if (rotatedRect.size.height < 10 || rotatedRect.size.width < 10)return false;
+    if (rotatedRect.size.height < 10 || rotatedRect.size.width < 10)return false;
     //将二维码从整个图上抠出来
     Point2f center = rotatedRect.center;//矩形中心点坐标
     Mat rot_mat = getRotationMatrix2D(center, rotatedRect.angle, 1.0);
     Mat rot_image;//旋转之后的图形
-    warpAffine(img, rot_image, rot_mat, img.size());//原图像旋转
-    
+    Mat newimg = img.clone();
+    warpAffine(newimg, rot_image, rot_mat, img.size());//原图像旋转
+    if (center.x - (rotatedRect.size.width / 2) < 0 || center.y - (rotatedRect.size.height / 2) < 0)
+        return false;
     Mat cropImg = rot_image(Rect(center.x - (rotatedRect.size.width / 2), center.y - (rotatedRect.size.height / 2), rotatedRect.size.width, rotatedRect.size.height));//提取ROI
     //横向黑白比例1:1:3:1:1
+   
 
     return IsQrColorRate(cropImg);
 }
@@ -161,28 +167,28 @@ bool Judge(vector<Point>& contour, Mat& img)
 bool get_qrcode(Mat input,Mat& output)
 {
     //彩色图转灰度图
-    cvtColor(input, input, CV_BGR2GRAY);
+    Mat newinput = input.clone();
+    cvtColor(newinput, newinput, CV_BGR2GRAY);
     //二值化
 
-
-    threshold(input, input, 0, 255, THRESH_BINARY | THRESH_TRIANGLE);
+    threshold(newinput, newinput, 0, 255, THRESH_BINARY | THRESH_TRIANGLE);
     
-    Mat ini = input;
-    GaussianBlur(ini, input, Size(Point(5, 5)), 0);
+    Mat ini; newinput.copyTo(ini);
+    GaussianBlur(ini, newinput, Size(Point(5, 5)), 0);
     //高斯模糊
-    imwrite("image/test4.jpg", input);
-
+    imwrite("image/gs.jpg", newinput);
     //调用查找轮廓函数
     vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
     
-    findContours(input, contours, hierarchy, CV_RETR_TREE, CHAIN_APPROX_NONE, Point(0, 0));
+    findContours(newinput, contours, hierarchy, CV_RETR_TREE, CHAIN_APPROX_NONE, Point(0, 0));
 
     //通过黑色定位角作为父轮廓，有两个子轮廓的特点，筛选出四个定位角
     int parentIdx = -1;
     int ic = 0;
     vector<vector<Point>>pos;//记录二维码顶点的坐标
     
+    int cnt = 0;
     for (int i = 0; i < contours.size(); i++)
     {
         if (hierarchy[i][2] != -1 && ic == 0)
@@ -201,14 +207,16 @@ bool get_qrcode(Mat input,Mat& output)
         }
         if(ic >= 2)
         {
+            ++cnt; cout << cnt << " ";
             //保存找到的三个黑色定位角
-            if (Judge(contours[parentIdx], input))
+            if (Judge(contours[parentIdx], ini))
             {
                 pos.push_back(contours[parentIdx]);
             }
             else ic = 0;
         }
     }    
+    cout << pos.size() << endl;
     if ( pos.size() < 4)return 0;
     
     vector<Point2f>qrcenter;//保存二维码中心的坐标
@@ -245,7 +253,6 @@ bool get_qrcode(Mat input,Mat& output)
     int x1 = qrcenter[0].x - edge_dis, y1 = qrcenter[0].y - edge_dis, x2 = qrcenter[0].x - edge_dis + new_COL, y2 = qrcenter[0].y - edge_dis + new_COL;
     Mat newoutput = drawingRotation( Range(y1, y2), Range(x1, x2) );
     newoutput.copyTo(output);
-    //imwrite("image/output2.jpg", newoutput);
     
     return 1;
 }
@@ -255,8 +262,18 @@ bool Point2f_compare(Point2f a, Point2f b)
 }
 void AdjustQrPoint(vector<Point2f> &point)//调整四个顶点相对位置，目前只保证是正向拍摄
 {
-    sort(point.begin(), point.begin() + 4, Point2f_compare);
+    sort(point.begin(), point.end(), Point2f_compare);
+    while (point.size() > 4)point.erase(point.begin() + 2);
     if (point[0].x > point[1].x&& point[0].x > point[2].x)swap(point[0], point[1]);
     else if (point[2].x > point[1].x&& point[2].x > point[0].x)swap(point[2], point[1]);
     if (point[0].y > point[1].y&& point[0].y > point[2].y)swap(point[0], point[2]);
+}
+//为字符串进行随机化编解码
+string str_transform(string& a)
+{
+    string b = a;
+    for (int i = 0; i < (int)b.size(); i++)
+        b[i] ^= SPSTR[i % SPSTR_LEN];
+    
+    return b;
 }

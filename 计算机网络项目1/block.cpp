@@ -19,7 +19,7 @@ void block::block_copy(int r, int c, block src)
 			set_char(r + i, c + j, src.get_char(i, j));
 }
 
-//构图
+//构图,黑色为1，白色为0
 void block::encode()
 {
 	int index = 0, count = 0;
@@ -48,7 +48,10 @@ void block::decode()
 		for (int j = 0; j < col * bit_SIZE; j++)
 		{
 			double gray = info_mat.at<uchar>(i, j);
-			char_info[index].set_bit(count, gray < THRESHOLD);
+			if(gray> THRESHOLD)
+			   char_info[index].set_bit(count, 1);
+			else 
+			   char_info[index].set_bit(count, 0);
 			++count;
 			if (count >= 8) { count = 0; ++index; }
 		}
@@ -109,7 +112,7 @@ block build_block(vector<charter>char_info_flow, int row, int col, int& index)
 	//最后一个block可能会出现charter不足的情况,设置终止符（null ascii:0）
 	block elem;
 	charter terminal;//终止符
-	terminal.set_message('\0'); terminal.encode();
+	terminal.set_message(char(-1)); terminal.encode();
 	elem.set_block(row, col);
 	for (int i = 0; i < row; i++)
 		for (int j = 0; j < col; j++)
@@ -149,9 +152,9 @@ void block::anchor()
 			{
 				int index = j * bit_SIZE + k;
 				if (!check(i, index, get_size()))
-					info_mat.at<uchar>(i, index) = 0;
-				else
 					info_mat.at<uchar>(i, index) = 255;
+				else
+					info_mat.at<uchar>(i, index) = 0;
 			}
 		}
 	}

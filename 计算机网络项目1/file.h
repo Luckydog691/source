@@ -14,4 +14,5 @@ bool IsQrColorRateX(cv::Mat& image);
 bool Judge(vector<Point>& contour, Mat& img);
 void AdjustQrPoint(vector<Point2f>& point);
 bool Point2f_compare(Point2f a, Point2f b);
+string str_transform(string& a);
 
