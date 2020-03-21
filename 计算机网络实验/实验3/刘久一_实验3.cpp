@@ -6,7 +6,9 @@
 
 #include "pcap.h"
 #include <ctime>
-
+#include <map>
+#include <string>
+#include <iostream>
   /* 4 bytes IP address */
 typedef struct ip_address
 {
@@ -69,6 +71,30 @@ struct macinfo
 			printf("%02X", srcmac[i]);
 		}
 	}
+	std::string getsrcmac()
+	{
+		std::string a;
+		for (int i = 0; i < 6; i++)
+		{
+			char bin[10];
+			if (i)a.push_back('-');
+			sprintf(bin, "%02X", srcmac[i]);
+			a += bin;
+		}
+		return a;
+	}
+	std::string getdstmac()
+	{
+		std::string a;
+		for (int i = 0; i < 6; i++)
+		{
+			char bin[10];
+			if (i)a.push_back('-');
+			sprintf(bin, "%02X", dstmac[i]);
+			a += bin;
+		}
+		return a;
+	}
 };
 
 /* prototype of the packet handler */
@@ -85,6 +111,9 @@ struct bpf_program fcode;
 
 time_t timep;
 struct tm* thistime;
+std::map<std::string, int>srcmac;
+std::map<std::string, int>dstmac;//记录源mac和目的mac的发送信息之和
+int cnt = 0;
 void pre()//预处理
 {
     /*抓取当前时间*/
@@ -181,7 +210,19 @@ void pre()//预处理
 	}
 
 }
-
+void showmac()
+{
+	printf("不同源mac地址的发送情况：\n");
+	for (auto e = srcmac.begin(); e != srcmac.end(); e++)
+	{
+		std::cout << e->first << " 一共发送了" << e->second << "长度的信息" << std::endl;
+	}
+	printf("不同目的mac地址的发送情况：\n");
+	for (auto e = dstmac.begin(); e != dstmac.end(); e++)
+	{
+		std::cout << e->first << " 一共发送了" << e->second << "长度的信息" << std::endl;
+	}
+}
 int main()
 {
 	pre();
@@ -254,4 +295,10 @@ void packet_handler(u_char* param, const struct pcap_pkthdr* header, const u_cha
 		ih->daddr.byte3,
 		ih->daddr.byte4);
 	printf("%d\n", header->len);
+	srcmac[mh.getsrcmac()] += header->len;
+	dstmac[mh.getdstmac()] += header->len;//将数据长度更新到map里
+	++cnt;
+	if(cnt%60==0)showmac();//每隔60次数据展示mac信息
+	
+
 }
