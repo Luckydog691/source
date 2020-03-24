@@ -113,7 +113,10 @@ time_t timep;
 struct tm* thistime;
 std::map<std::string, int>srcmac;
 std::map<std::string, int>dstmac;//记录源mac和目的mac的发送信息之和
+std::map<std::string, int>srcip;
+std::map<std::string, int>dstip;//记录源ip和目的ip的发送信息之和
 int cnt = 0;
+int sumlen = 0;//记录总流量
 void pre()//预处理
 {
     /*抓取当前时间*/
@@ -223,6 +226,19 @@ void showmac()
 		std::cout << e->first << " 一共发送了" << e->second << "长度的信息" << std::endl;
 	}
 }
+void showip()
+{
+	printf("不同源ip地址的发送情况：\n");
+	for (auto e = srcip.begin(); e != srcip.end(); e++)
+	{
+		std::cout << e->first << " 一共发送了" << e->second << "长度的信息" << std::endl;
+	}
+	printf("不同目的ip地址的发送情况：\n");
+	for (auto e = dstip.begin(); e != dstip.end(); e++)
+	{
+		std::cout << e->first << " 一共发送了" << e->second << "长度的信息" << std::endl;
+	}
+}
 int main()
 {
 	pre();
@@ -283,6 +299,21 @@ void packet_handler(u_char* param, const struct pcap_pkthdr* header, const u_cha
 
 	mh.printsrcmac();
 	/* print ip addresses and udp ports */
+	std::string srcipstr, dstipstr;//提取出ip地址
+	char sub[24];
+	sprintf(sub, "%d.%d.%d.%d",
+		ih->saddr.byte1,
+		ih->saddr.byte2,
+		ih->saddr.byte3,
+		ih->saddr.byte4);
+	srcipstr = sub;
+	sprintf(sub, "%d.%d.%d.%d",
+		ih->daddr.byte1,
+		ih->daddr.byte2,
+		ih->daddr.byte3,
+		ih->daddr.byte4);
+	dstipstr = sub;
+
 	printf(",%d.%d.%d.%d,",
 		ih->saddr.byte1,
 		ih->saddr.byte2,
@@ -295,10 +326,14 @@ void packet_handler(u_char* param, const struct pcap_pkthdr* header, const u_cha
 		ih->daddr.byte3,
 		ih->daddr.byte4);
 	printf("%d\n", header->len);
+	srcip[srcipstr] += header->len;
+	dstip[dstipstr] += header->len;
 	srcmac[mh.getsrcmac()] += header->len;
 	dstmac[mh.getdstmac()] += header->len;//将数据长度更新到map里
-	++cnt;
-	if(cnt%60==0)showmac();//每隔60次数据展示mac信息
 	
+	++cnt;
+	if (cnt % 60 == 0) { showmac(); showip(); } //每隔60次数据展示mac和ip信息
+	sumlen += header->len;
+	if (sumlen >= 1024 * 1024 * 0.05)printf("数据已经超过0.05M，流量预警!\n");//流量预警
 
 }

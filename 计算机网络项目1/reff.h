@@ -6,3 +6,4 @@
 #include "movie.h"
 #include "file.h"
 #include "mainfunc.h"
+#include "crc32.h"

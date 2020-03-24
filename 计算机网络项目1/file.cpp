@@ -207,7 +207,6 @@ bool get_qrcode(Mat input,Mat& output)
         }
         if(ic >= 2)
         {
-            ++cnt; cout << cnt << " ";
             //保存找到的三个黑色定位角
             if (Judge(contours[parentIdx], ini))
             {
@@ -216,9 +215,10 @@ bool get_qrcode(Mat input,Mat& output)
             else ic = 0;
         }
     }    
-    cout << pos.size() << endl;
+    
     if ( pos.size() < 4)return 0;
     
+
     vector<Point2f>qrcenter;//保存二维码中心的坐标
     vector<Point2f>newcenter;//仿射变换坐标
     for (int i = 0; i < 4; i++)
