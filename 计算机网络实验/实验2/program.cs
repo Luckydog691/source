@@ -1,122 +1,72 @@
-using System;
+ï»¿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.IO.Ports;
 using System.Threading;
 
-public class PortChat
+namespace ConsoleApp1
 {
-    static StringComparer stringComparer;
-    static Thread readThread;
-    static SerialPort SP;//½Ó¿ÚÍ¨ĞÅÀà
-    static bool is_open = false;//ÊÇ·ñÕıÔÚÍ¨ĞÅ
-    //»ñµÃ·¢ËÍÊ±¼ä
-    private static string get_sent_time()
+    public class PortChat
     {
-        string a = "[SENT  ", b = DateTime.Now.ToString();
-        a = a + b + "] ";
-        return a;
-    }
-    //»ñµÃ½ÓÊÕÊ±¼ä
-    private static string get_rev_time()
-    {
-        string a = "[RECV  ", b = DateTime.Now.ToString();
-        a = a + b + "] ";
-        return a;
-    }
-    private static bool get_portname()//Ñ¡Ôñ´®¿ÚÃû
-    {
-        //»ñµÃËùÓĞ´®¿ÚµÄÃû×Ö
-        Console.WriteLine("¿ÉÓÃµÄ´®¿ÚÈçÏÂ£¬ÇëÊäÈë´®¿ÚÃû³ÆÑ¡Ôñ´®¿Ú\n");
-        string[] portname = SerialPort.GetPortNames();
-        for (int i = 0; i < portname.Length; i++)
-            Console.WriteLine("{0} {1}\n", i + 1, portname[i]);
-        //ÊäÈë´ıÑ¡ÔñµÄ´®¿ÚÃû×Ö
-        SP.PortName = Console.ReadLine();
-        for (int i = 0; i < portname.Length; i++)
+        static bool flag;   //è¡¨ç¤ºæ˜¯å¦ç»§ç»­ä¼ è¾“
+        static SerialPort serialport;   // ä¸²è¡Œç«¯å£
+        public static void Main()
         {
-            if (SP.PortName == portname[i]) { Console.WriteLine("´®¿ÚÑ¡Ôñ³É¹¦£¡\n"); return true; }
-        }
-        Console.WriteLine("´®¿ÚÃûÎŞĞ§£¡ÇëÖØĞÂÑ¡Ôñ\n");
-        return false;
-    }
-    private static void get_baudrate()//ÊäÈë²¨ÌØÂÊ
-    {
-
-        Console.Write("ÇëÊäÈë²¨ÌØÂÊ:\n");
-        string sub = Console.ReadLine();
-        int rate;
-        if (!int.TryParse(sub, out rate))
-            Console.Write("ÊäÈëÊı×ÖÎŞĞ§,²¨ÌØÂÊÎªÄ¬ÈÏÖµ{0}\n", SP.BaudRate);
-        else
-        {
-            Console.Write("²¨ÌØÂÊ³É¹¦ÉèÖÃ£¡\n");
-            SP.BaudRate = rate;
-        }
-    }
-    private static void get_stopbit()//ÊäÈëÍ£Ö¹Î»Êı
-    {
-
-        Console.Write("ÇëÊäÈëÍ£Ö¹Î»Êı:\n1 : 1Î»\n2 : 2Î»\n");
-        string sub = Console.ReadLine();
-        int rate;
-        if (!int.TryParse(sub, out rate))
-            Console.Write("ÊäÈëÊı×ÖÎŞĞ§,Í£Ö¹Î»ÊıÎªÄ¬ÈÏ1Î»\n");
-        else
-        {
-            if (rate < 1 || rate > 2) Console.Write("ÊäÈëÊı×ÖÎŞĞ§,Í£Ö¹Î»ÊıÎªÄ¬ÈÏ1Î»\n");
-            else Console.Write("Í£Ö¹Î»Êı³É¹¦ÉèÖÃ£¡\n");
+            string name;
+            string message;
+            StringComparer stringComparer = StringComparer.OrdinalIgnoreCase;   //è¿›è¡Œå­—ç¬¦ä¸²æ¯”è¾ƒ
+            Thread readThread = new Thread(Read);
+            serialport = new SerialPort();
+            serialport.PortName = SetPortName(serialport.PortName); //è®¾ç½®å‚æ•°
+            serialport.Open();  //å¼€å¯ç«¯å£
+            flag = true;
+            readThread.Start();
+            Console.Write("è¾“å…¥åç§°: ");
+            name = Console.ReadLine();
+            Console.WriteLine("è¾“å…¥â€œquitâ€ä»¥é€€å‡ºï¼š");
+            while (flag)    //å¯ç»§ç»­ä¼ è¾“ï¼Œä¼ è¾“æ•°æ®
             {
-                switch (rate)
+                Console.WriteLine("è¾“å…¥ä¼ è¾“æ•°æ®ï¼š");
+                message = Console.ReadLine();
+
+                if (stringComparer.Equals("quit", message))
                 {
-                    case 1: { SP.StopBits = StopBits.One; break; }
-                    case 2: { SP.StopBits = StopBits.Two; break; }
+                    flag = false;
+                }
+                else
+                {
+                    serialport.WriteLine(
+                        String.Format("<{0}>: {1}", name, message));
                 }
             }
+            readThread.Join();
+            serialport.Close();
         }
-    }
-    private static void ini()//³õÊ¼»¯
-    {
-        stringComparer = StringComparer.OrdinalIgnoreCase;
-        readThread = new Thread(Getmessage);
-        SP = new SerialPort();//ĞÂ½¨SerialPortÀà
-        Console.WriteLine("ÏÂÃæ½øĞĞ´®¿ÚÍ¨ĞÅµÄ»ù´¡ÉèÖÃ\n\n");
-        while (get_portname() == false) ;//Ñ¡ÔñÕıÈ·µÄ´®¿ÚÃû
-        get_baudrate();
-        get_stopbit();
-        SP.ReadTimeout = 500;
-        SP.WriteTimeout = 500;//ÉèÖÃ¶ÁĞ´×î´óÊ±¼ä
-        SP.Open();
-        is_open = true;
-        readThread.Start();
-    }
-    public static void Main()
-    {
-        Console.WriteLine("»¶Ó­Ê¹ÓÃ´®¿ÚÍ¨ĞÅÄ£ÄâÏµÍ³£¡\n");
-        ini();
-        Console.WriteLine("¿ªÊ¼Í¨ĞÅ£¬¼üÈë\"exit\"½áÊø\n");
-        while (is_open)
+        public static void Read()
         {
-            string now = Console.ReadLine();
-            if (now == "exit")
-            { is_open = false; break; }
-            if (now == "testlen")
+            while (flag)
             {
-                string uu = "";
-                for (int i = 0; i <= 1000; i++) uu = uu + "a";
-                SP.WriteLine(get_sent_time() + uu); continue;
+                string message = serialport.ReadLine();
+                Console.WriteLine(message);
             }
-            Console.WriteLine(get_sent_time() + now);
-            SP.WriteLine(get_sent_time() + now);
         }
-        readThread.Join();
-        SP.Close();
-    }
-    private static void Getmessage()
-    {
-        while (is_open)
-            try
+        public static string SetPortName(string defaultPortName)    //è®¾ç½®ç«¯å£
+        {
+            string portName;
+            Console.WriteLine("æŸ¥è¯¢å¯ç”¨ç«¯å£:");
+            foreach (string s in SerialPort.GetPortNames())
             {
-                Console.WriteLine(get_rev_time() + SP.ReadLine());
+                Console.WriteLine("     {0}", s);
             }
-            catch (TimeoutException) { }
+            Console.Write("è¾“å…¥ç«¯å£(Default: COM1): ", defaultPortName);
+            portName = Console.ReadLine();
+            if (portName == "" || !(portName.ToLower()).StartsWith("com"))
+            {
+                portName = defaultPortName; //é»˜è®¤COM1
+            }
+            return portName;
+        }
     }
 }

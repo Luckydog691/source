@@ -3,7 +3,24 @@
 #include "block.h"
 
 //生成block（四个定位点）
-
+Mat returninisize(Mat& ini)
+{
+	Mat sub(ROW, COL * bit_SIZE, CV_8UC1);
+	for (int x = 0; x < ROW; x++)
+	{
+		for (int y = 0; y < COL * bit_SIZE; y++)
+		{
+			double sum = (double)ini.at<uchar>(x * 8 + 4, y * 8 + 4)
+				+ ini.at<uchar>(x * 8 + 4, y * 8 + 3)
+				+ ini.at<uchar>(x * 8 + 3, y * 8 + 4)
+				+ ini.at<uchar>(x * 8 + 3, y * 8 + 3);
+			if (sum / 4 >= 128)
+				sub.at<uchar>(x, y) = 255;
+			else sub.at<uchar>(x, y) = 0;
+		}
+	}
+	return sub;
+}
 void pict::encode()
 {
 	block anc1;

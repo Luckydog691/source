@@ -171,7 +171,8 @@ bool get_qrcode(Mat input,Mat& output)
     cvtColor(newinput, newinput, CV_BGR2GRAY);
     //¶þÖµ»¯
 
-    threshold(newinput, newinput, 0, 255, THRESH_BINARY | THRESH_TRIANGLE);
+    threshold(newinput, newinput, 100, 255, CV_THRESH_BINARY);
+    //threshold(newinput, newinput, 0, 255, THRESH_BINARY | THRESH_TRIANGLE);
     
     Mat ini; newinput.copyTo(ini);
     GaussianBlur(ini, newinput, Size(Point(5, 5)), 0);

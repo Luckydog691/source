@@ -51,3 +51,4 @@ vector<pict>charter_to_pict(vector<charter> ct);
 
 //charterÁ÷×ªblockÁ÷
 vector<charter> pict_to_charter(vector<pict> pt);
+Mat returninisize(Mat& ini);

@@ -36,10 +36,25 @@ void mainencode()
 	inputdefaultadd = selectadd(inputdefaultadd);
 	for (int i = 1; i <= 5; i++)
 	{
+		int dis = 0;
+		cout << "下面生成第" << i << "个视频，请选择帧率：30fps(1)(默认),60fps(2)" << endl;
+		string bb;
+		cin >> bb;
+		if (bb[0] == '2')
+		{
+			cout << "帧率：60fps" << endl;
+			dis = 60;
+		}
+		else
+		{
+			cout << "帧率：30fps" << endl;
+			dis = 30;
+		}
 		string num; num.push_back(i + '0');
 		string a = moviedefaultadd + "e" + num + ".avi";
 		string b = inputdefaultadd + "e" + num + ".bin";
-		ExportMovie(b, a, framebit, timelimit[i - 1]);
+		ExportMovie(b, a, framebit, timelimit[i - 1],dis);
+		cout << "第" << i << "个视频生成成功，帧率为" << dis<<"fps"<<endl;
 	}
 }
 void maindecode()
@@ -51,14 +66,12 @@ void maindecode()
 	for (int i = 1; i <= 5; i++)
 	{
 		string num; num.push_back(i + '0');
-		string a = moviedefaultadd + "e" + num + ".avi";
+		string a = moviedefaultadd + "e" + num + ".mp4";
 		string b = outputdefaultadd + num + ".bin";
 		string c = outputdefaultadd + "v" + num + ".bin";
 		ImportMovie(a, b, c, framebit);
 	}
-
 }
-
 int main()
 {
 	//可以用如下读取本地文件，也可以删除之后控制台读入
@@ -66,6 +79,7 @@ int main()
 	//字符串转视频：  参数：欲编码字符串地址 视频保存地址 帧率 视频长度(ms)
 	//视频转字符串：  参数：视频保存地址 帧率
 	mainencode();
-	maindecode();
+	//maindecode(); 
+	system("pause");
 	return 0;
 }
